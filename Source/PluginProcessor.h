@@ -42,6 +42,11 @@ public:
     juce::String getUserSamplePath (int layer) const;
     static bool isSupportedAudioFile (const juce::String& path);
 
+    // ---- volume envelopes (message thread writes, audio thread reads)
+    EnvPtr getEnvelope (int layer) const { return std::atomic_load (&envelopes[(size_t) layer]); }
+    void setEnvelope (int layer, Envelope e);
+    static Envelope defaultEnvelope (int layer);
+
     // ---- presets (message thread)
     static juce::File getUserPresetFolder();
     juce::Array<juce::File> getUserPresets() const;
@@ -58,17 +63,25 @@ public:
     int getHitLength() const { return engine.hitLength.load(); }
     int getHitSerial() const { return engine.hitSerial.load(); }
 
+    // ---- editor UI state that is saved with the project
+    int getSelectedLayer() const { return (int) apvts.state.getProperty ("selLayer", (int) Kick); }
+    void setSelectedLayer (int l) { apvts.state.setProperty ("selLayer", juce::jlimit (0, 2, l), nullptr); }
+    float getZoomMs() const { return (float) apvts.state.getProperty ("zoomMs", 1000.f); }
+    void setZoomMs (float ms) { apvts.state.setProperty ("zoomMs", ms, nullptr); }
+
 private:
     KickParams gatherParams();
     void applyValues (const juce::XmlElement&);
     void restoreUserSamplesFromState();
+    void restoreEnvelopesFromState();
     void collectGarbage();
 
     struct Ptrs
     {
         using A = std::atomic<float>*;
-        std::array<A, NumSampleLayers> on {}, src {}, level {}, pitch {}, start {}, length {}, hp {}, lp {};
-        A punchKey {}, subOn {}, subWave {}, subOct {}, subLevel {}, subAttack {}, subLength {}, subTone {}, subDrive {};
+        std::array<A, NumSampleLayers> on {}, src {}, level {}, pitch {}, offset {}, hp {}, lp {}, rev {}, forge {};
+        A punchKey {}, fOn {}, fDrive {}, fFocus {}, fGrit {}, fCrunch {}, fTone {}, fOtt {};
+        A subOn {}, subWave {}, subOct {}, subLevel {}, subAttack {}, subLength {}, subTone {}, subDrive {};
         A rumOn {}, rumLevel {}, rumDelay {}, rumDecay {}, rumDrive {}, rumLp {}, rumDuck {};
         A root {}, preGain {}, clipOn {}, clipCeil {}, clipKnee {}, limOn {}, limCeil {}, limRel {}, volume {};
     } ptr;
@@ -77,7 +90,8 @@ private:
     juce::AudioFormatManager formats;
 
     std::array<SamplePtr, NumSampleLayers> userSample;   // atomic access via std::atomic_load/store
-    std::vector<SamplePtr> keepAlive;                    // old samples freed on the message thread only
+    std::array<EnvPtr, NumSampleLayers> envelopes;       // atomic access via std::atomic_load/store
+    std::vector<std::shared_ptr<const void>> keepAlive;  // old objects freed on the message thread only
     std::atomic<bool> testTrigger { false };
 
     int currentProgram = 0;

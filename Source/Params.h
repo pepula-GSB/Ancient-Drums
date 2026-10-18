@@ -15,11 +15,21 @@ namespace ParamIDs
     inline constexpr const char* src    = "src";
     inline constexpr const char* level  = "level";
     inline constexpr const char* pitch  = "pitch";
-    inline constexpr const char* start  = "start";
-    inline constexpr const char* length = "length";
+    inline constexpr const char* offset = "offset";   // v2: time offset in ms (negative = trim the start)
     inline constexpr const char* hp     = "hp";
     inline constexpr const char* lp     = "lp";
+    inline constexpr const char* rev    = "rev";      // v2: play the sample reversed
+    inline constexpr const char* forge  = "forge";    // v2: send this layer through FORGE
     inline constexpr const char* punchKey = "p_key";      // punch key-tracking is optional
+
+    // FORGE (v2)
+    inline constexpr const char* fOn     = "f_on";
+    inline constexpr const char* fDrive  = "f_drive";
+    inline constexpr const char* fFocus  = "f_focus";
+    inline constexpr const char* fGrit   = "f_grit";
+    inline constexpr const char* fCrunch = "f_crunch";
+    inline constexpr const char* fTone   = "f_tone";
+    inline constexpr const char* fOtt    = "f_ott";
 
     // SUB
     inline constexpr const char* subOn     = "s_on";

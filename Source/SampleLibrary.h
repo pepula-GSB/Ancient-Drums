@@ -72,6 +72,12 @@ private:
 
     static void normalise (std::vector<float>& d, float target = 0.92f)
     {
+        // remove DC / sub-sonic offset left by asymmetric saturation (it only eats headroom)
+        {
+            const float c = std::exp (-juce::MathConstants<float>::twoPi * 18.f / (float) sr);
+            float xPrev = 0.f, yPrev = 0.f;
+            for (auto& v : d) { const float y = v - xPrev + c * yPrev; xPrev = v; yPrev = y; v = y; }
+        }
         float pk = 0.f;
         for (auto v : d) pk = std::max (pk, std::abs (v));
         if (pk > 0.f) for (auto& v : d) v *= target / pk;

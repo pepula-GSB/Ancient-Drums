@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(AncientDrums VERSION 1.0.0)
+project(AncientDrums VERSION 2.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +17,14 @@ else()
         GIT_SHALLOW TRUE)
     FetchContent_MakeAvailable(JUCE)
 endif()
+
+juce_add_binary_data(AncientData SOURCES
+    Resources/Fonts/Cinzel-VF.ttf
+    Resources/Fonts/Michroma-Regular.ttf
+    Resources/Fonts/BarlowSemiCondensed-Medium.ttf
+    Resources/Fonts/BarlowSemiCondensed-SemiBold.ttf
+    Resources/Fonts/JetBrainsMono-VF.ttf)
+set_target_properties(AncientData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 juce_add_plugin(AncientDrums
     COMPANY_NAME "Prophecy Audio"
@@ -47,6 +55,7 @@ target_compile_definitions(AncientDrums PUBLIC
 
 target_link_libraries(AncientDrums
     PRIVATE
+        AncientData
         juce::juce_audio_utils
         juce::juce_dsp
         juce::juce_audio_formats
@@ -63,5 +72,5 @@ if(PROPHECY_BUILD_TESTS)
     target_compile_definitions(RenderTest PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
     JUCE_USE_MP3AUDIOFORMAT=1
         $<$<PLATFORM_ID:Linux>:JUCE_USE_XRANDR=0 JUCE_USE_XINERAMA=0 JUCE_USE_XCURSOR=0 JUCE_USE_XRENDER=0 JUCE_ALSA=0 JUCE_JACK=0>)
-    target_link_libraries(RenderTest PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_audio_formats juce::juce_recommended_config_flags)
+    target_link_libraries(RenderTest PRIVATE AncientData juce::juce_audio_utils juce::juce_dsp juce::juce_audio_formats juce::juce_recommended_config_flags)
 endif()
